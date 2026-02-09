@@ -1,8 +1,6 @@
 {
-  "importedAt": "2026-02-09T17:05:37.566Z",
+  "importedAt": "2026-02-09T17:06:15.490Z",
   "source": {
-    "kind": "venue",
-    "venueId": "skills-sh-all-time",
-    "key": "vercel-labs/agent-browser/agent-browser"
+    "kind": "manual_sync"
   }
 }
