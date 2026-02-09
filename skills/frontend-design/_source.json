@@ -1,8 +1,6 @@
 {
-  "importedAt": "2026-02-09T17:05:33.404Z",
+  "importedAt": "2026-02-09T17:06:25.034Z",
   "source": {
-    "kind": "venue",
-    "venueId": "skills-sh-all-time",
-    "key": "anthropics/skills/frontend-design"
+    "kind": "manual_sync"
   }
 }
