@@ -1,8 +1,6 @@
 {
-  "importedAt": "2026-02-09T17:05:20.697Z",
+  "importedAt": "2026-02-09T17:06:22.780Z",
   "source": {
-    "kind": "venue",
-    "venueId": "skills-sh-all-time",
-    "key": "vercel-labs/skills/find-skills"
+    "kind": "manual_sync"
   }
 }
