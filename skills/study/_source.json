@@ -1,0 +1,9 @@
+{
+  "importedAt": "2026-02-09T16:10:01.653Z",
+  "source": {
+    "kind": "git",
+    "repoUrl": "https://github.com/gradigit/claude-skills.git",
+    "ref": "main",
+    "subdir": ".claude/skills/study"
+  }
+}
