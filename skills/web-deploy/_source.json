@@ -1,8 +1,6 @@
 {
-  "importedAt": "2026-02-10T07:37:52.745Z",
+  "importedAt": "2026-02-10T08:18:23.850Z",
   "source": {
-    "kind": "venue",
-    "venueId": "clawhub",
-    "key": "web-deploy"
+    "kind": "manual_sync"
   }
 }
