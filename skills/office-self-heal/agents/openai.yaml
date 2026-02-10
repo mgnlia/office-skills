@@ -1,0 +1,4 @@
+interface:
+  display_name: "Office Self-Heal"
+  short_description: "Diagnose logs and patch AI Office safely"
+  default_prompt: "Use $office-self-heal to inspect AI Office logs, find root cause, apply a minimal safe code fix, validate, and report the outcome."
