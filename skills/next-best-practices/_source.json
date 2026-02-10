@@ -1,8 +1,6 @@
 {
-  "importedAt": "2026-02-10T08:17:09.987Z",
+  "importedAt": "2026-02-10T08:17:44.427Z",
   "source": {
-    "kind": "venue",
-    "venueId": "skills-sh-trending",
-    "key": "vercel-labs/next-skills/next-best-practices"
+    "kind": "manual_sync"
   }
 }
