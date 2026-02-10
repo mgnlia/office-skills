@@ -1,8 +1,6 @@
 {
-  "importedAt": "2026-02-10T07:37:23.085Z",
+  "importedAt": "2026-02-10T08:18:20.472Z",
   "source": {
-    "kind": "venue",
-    "venueId": "clawhub",
-    "key": "vercel-deploy-claimable"
+    "kind": "manual_sync"
   }
 }
