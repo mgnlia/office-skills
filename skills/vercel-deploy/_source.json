@@ -1,6 +1,8 @@
 {
-  "importedAt": "2026-02-10T08:18:20.472Z",
+  "importedAt": "2026-02-12T05:50:04.596Z",
   "source": {
-    "kind": "manual_sync"
+    "kind": "venue",
+    "venueId": "skills-sh-all-time",
+    "key": "vercel-labs/agent-skills/vercel-deploy-claimable"
   }
 }
