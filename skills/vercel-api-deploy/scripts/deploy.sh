@@ -2,39 +2,28 @@
 set -e
 VERCEL_TOKEN="${VERCEL_TOKEN:-1rzNjBUZLOAKORAXpSsZqEUI}"
 echo "🚀 Deploying SolShield Dashboard to Vercel..."
-node --version || { echo "❌ node not found"; exit 1; }
+echo "🔧 Bun version: $(bun --version)"
 
-cat > /tmp/vdeploy.mjs << 'EOF'
-import https from 'https';
-import fs from 'fs';
-import path from 'path';
-
-const TOKEN = process.env.VERCEL_TOKEN;
+cat > /tmp/vdeploy.ts << 'EOF'
+const TOKEN = Bun.env.VERCEL_TOKEN || '1rzNjBUZLOAKORAXpSsZqEUI';
 const DIR = '/app/workspace/colosseum-agent-hackathon/dashboard';
 
-function req(opts, body) {
-  return new Promise((resolve, reject) => {
-    const r = https.request(opts, res => {
-      let d = ''; res.on('data', c => d += c);
-      res.on('end', () => { try { resolve({s:res.statusCode,d:JSON.parse(d)}); } catch(e) { resolve({s:res.statusCode,d}); }});
-    });
-    r.on('error', reject);
-    if (body) r.write(typeof body === 'string' ? body : JSON.stringify(body));
-    r.end();
-  });
-}
+import { readdirSync, statSync, readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
-function scan(dir, base='') {
-  const out = [];
-  for (const e of fs.readdirSync(dir, {withFileTypes:true})) {
-    if (['node_modules','.next','.git','.vercel'].includes(e.name)) continue;
+function scan(dir: string, base = ''): any[] {
+  const out: any[] = [];
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (['node_modules', '.next', '.git', '.vercel', '__pycache__'].includes(e.name)) continue;
     const rel = base ? `${base}/${e.name}` : e.name;
-    const full = path.join(dir, e.name);
-    if (e.isDirectory()) out.push(...scan(full, rel));
-    else {
-      const stat = fs.statSync(full);
-      if (stat.size > 5*1024*1024) continue; // skip files > 5MB
-      out.push({file:rel, data:fs.readFileSync(full).toString('base64'), encoding:'base64'});
+    const full = join(dir, e.name);
+    if (e.isDirectory()) {
+      out.push(...scan(full, rel));
+    } else {
+      const stat = statSync(full);
+      if (stat.size > 5 * 1024 * 1024) continue;
+      const data = readFileSync(full).toString('base64');
+      out.push({ file: rel, data, encoding: 'base64' });
     }
   }
   return out;
@@ -42,47 +31,51 @@ function scan(dir, base='') {
 
 async function main() {
   console.log('📁 Scanning', DIR);
-  if (!fs.existsSync(DIR)) { console.error('❌ Not found:', DIR); process.exit(1); }
+  if (!existsSync(DIR)) {
+    console.error('❌ Not found:', DIR);
+    process.exit(1);
+  }
+
   const files = scan(DIR);
-  console.log(`📦 ${files.length} files`);
-  
+  console.log(`📦 ${files.length} files collected`);
+
   const payload = {
     name: 'solshield-dashboard',
     files,
     projectSettings: { framework: 'nextjs' },
     target: 'production'
   };
-  
-  const size = JSON.stringify(payload).length;
-  console.log(`📊 Payload: ${(size/1024/1024).toFixed(1)}MB`);
-  
-  if (size > 100*1024*1024) {
-    console.error('❌ Payload too large');
-    process.exit(1);
-  }
-  
-  console.log('🚀 Deploying...');
-  const res = await req({
-    hostname: 'api.vercel.com',
-    path: '/v13/deployments',
+
+  const payloadStr = JSON.stringify(payload);
+  console.log(`📊 Payload: ${(payloadStr.length / 1024 / 1024).toFixed(2)}MB`);
+
+  console.log('🚀 Sending to Vercel API...');
+  const resp = await fetch('https://api.vercel.com/v13/deployments', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${TOKEN}`,
       'Content-Type': 'application/json'
+    },
+    body: payloadStr
+  });
+
+  const data = await resp.json();
+
+  if (resp.ok) {
+    console.log('✅ DEPLOYED SUCCESSFULLY!');
+    console.log(`🔗 URL: https://${data.url}`);
+    console.log(`🆔 Deployment ID: ${data.id}`);
+    if (data.alias?.length) {
+      console.log(`🌐 Aliases: ${data.alias.join(', ')}`);
     }
-  }, payload);
-  
-  if (res.s >= 200 && res.s < 300) {
-    console.log('✅ DEPLOYED!');
-    console.log(`🔗 https://${res.d.url}`);
-    console.log(`🆔 ${res.d.id}`);
+    console.log(`📋 Status: ${data.readyState || data.status}`);
   } else {
-    console.log('❌ Failed:', res.s);
-    console.log(JSON.stringify(res.d, null, 2));
+    console.log(`❌ Deployment failed (${resp.status}):`);
+    console.log(JSON.stringify(data, null, 2));
   }
 }
 
-main().catch(e => { console.error('❌', e.message); process.exit(1); });
+main();
 EOF
 
-VERCEL_TOKEN="$VERCEL_TOKEN" node /tmp/vdeploy.mjs
+VERCEL_TOKEN="$VERCEL_TOKEN" bun run /tmp/vdeploy.ts
