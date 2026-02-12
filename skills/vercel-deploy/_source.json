@@ -1,8 +1,8 @@
 {
-  "importedAt": "2026-02-12T05:50:04.596Z",
+  "importedAt": "2026-02-12T05:52:59.961Z",
   "source": {
     "kind": "venue",
-    "venueId": "skills-sh-all-time",
-    "key": "vercel-labs/agent-skills/vercel-deploy-claimable"
+    "venueId": "clawhub",
+    "key": "vercel-deploy"
   }
 }

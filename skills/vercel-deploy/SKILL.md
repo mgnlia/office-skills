@@ -1,112 +1,164 @@
 ---
 name: vercel-deploy
-description: Deploy applications and websites to Vercel. Use this skill when the user requests deployment actions such as "Deploy my app", "Deploy this to production", "Create a preview deployment", "Deploy and give me the link", or "Push this live". No authentication required - returns preview URL and claimable deployment link.
-metadata:
-  author: vercel
-  version: "1.0.0"
+description: Deploy and manage Vercel projects. Use when deploying applications to Vercel, managing environment variables, checking deployment status, viewing logs, or performing Vercel operations. Supports production and preview deployments. Practical infrastructure operations - no "AI will build your app" magic.
 ---
 
-# Vercel Deploy
+# Vercel Deployment & Management
 
-Deploy any project to Vercel instantly. No authentication required.
+Deploy and manage Vercel projects. No "AI will build your app" nonsense - just practical Vercel operations.
 
-## How It Works
+## Configuration
 
-1. Packages your project into a tarball (excludes `node_modules` and `.git`)
-2. Auto-detects framework from `package.json`
-3. Uploads to deployment service
-4. Returns **Preview URL** (live site) and **Claim URL** (transfer to your Vercel account)
+### Vercel Setup
 
-## Usage
-
-```bash
-bash /mnt/skills/user/vercel-deploy/scripts/deploy.sh [path]
-```
-
-**Arguments:**
-- `path` - Directory to deploy, or a `.tgz` file (defaults to current directory)
-
-**Examples:**
+**Get your token:**
+1. Go to https://vercel.com/account/tokens
+2. Create token (name it "OpenClaw")
+3. Set in environment:
 
 ```bash
-# Deploy current directory
-bash /mnt/skills/user/vercel-deploy/scripts/deploy.sh
-
-# Deploy specific project
-bash /mnt/skills/user/vercel-deploy/scripts/deploy.sh /path/to/project
-
-# Deploy existing tarball
-bash /mnt/skills/user/vercel-deploy/scripts/deploy.sh /path/to/project.tgz
+export VERCEL_TOKEN="your-token-here"
 ```
 
-## Output
-
+Or store in `.env`:
 ```
-Preparing deployment...
-Detected framework: nextjs
-Creating deployment package...
-Deploying...
-✓ Deployment successful!
-
-Preview URL: https://skill-deploy-abc123.vercel.app
-Claim URL:   https://vercel.com/claim-deployment?code=...
+VERCEL_TOKEN=your-token-here
 ```
 
-The script also outputs JSON to stdout for programmatic use:
+## Vercel Operations
 
-```json
-{
-  "previewUrl": "https://skill-deploy-abc123.vercel.app",
-  "claimUrl": "https://vercel.com/claim-deployment?code=...",
-  "deploymentId": "dpl_...",
-  "projectId": "prj_..."
-}
+### Deploy Project
+
+```bash
+# Deploy to preview
+scripts/vercel_deploy.sh --project bountylock --preview
+
+# Deploy to production
+scripts/vercel_deploy.sh --project bountylock --production
 ```
 
-## Framework Detection
+### Manage Environment Variables
 
-The script auto-detects frameworks from `package.json`. Supported frameworks include:
+```bash
+# List env vars
+scripts/vercel_env.sh --project bountylock --list
 
-- **React**: Next.js, Gatsby, Create React App, Remix, React Router
-- **Vue**: Nuxt, Vitepress, Vuepress, Gridsome
-- **Svelte**: SvelteKit, Svelte, Sapper
-- **Other Frontend**: Astro, Solid Start, Angular, Ember, Preact, Docusaurus
-- **Backend**: Express, Hono, Fastify, NestJS, Elysia, h3, Nitro
-- **Build Tools**: Vite, Parcel
-- **And more**: Blitz, Hydrogen, RedwoodJS, Storybook, Sanity, etc.
+# Set env var
+scripts/vercel_env.sh --project bountylock --set \
+  --key NEXT_PUBLIC_RPC_URL \
+  --value "https://sepolia.base.org" \
+  --env production
 
-For static HTML projects (no `package.json`), framework is set to `null`.
-
-## Static HTML Projects
-
-For projects without a `package.json`:
-- If there's a single `.html` file not named `index.html`, it gets renamed automatically
-- This ensures the page is served at the root URL (`/`)
-
-## Present Results to User
-
-Always show both URLs:
-
+# Delete env var
+scripts/vercel_env.sh --project bountylock --delete \
+  --key OLD_VAR \
+  --env production
 ```
-✓ Deployment successful!
 
-Preview URL: https://skill-deploy-abc123.vercel.app
-Claim URL:   https://vercel.com/claim-deployment?code=...
+### Check Deployment Status
 
-View your site at the Preview URL.
-To transfer this deployment to your Vercel account, visit the Claim URL.
+```bash
+# Get latest deployment
+scripts/vercel_status.sh --project bountylock
+
+# Get specific deployment
+scripts/vercel_status.sh --deployment dpl_abc123
 ```
+
+### View Logs
+
+```bash
+# Get deployment logs
+scripts/vercel_logs.sh --deployment dpl_abc123
+
+# Get runtime logs
+scripts/vercel_logs.sh --project bountylock --function api/bounties
+```
+
+## Common Workflows
+
+### Initial Testnet Deployment
+
+1. **Set environment variables:**
+```bash
+# Contract addresses (after deploying to Sepolia)
+scripts/vercel_env.sh --project bountylock --set \
+  --key NEXT_PUBLIC_CONTRACT_ADDRESS \
+  --value "0x..." \
+  --env production
+
+# RPC URL
+scripts/vercel_env.sh --project bountylock --set \
+  --key NEXT_PUBLIC_RPC_URL \
+  --value "https://sepolia.base.org" \
+  --env production
+
+# Chain ID
+scripts/vercel_env.sh --project bountylock --set \
+  --key NEXT_PUBLIC_CHAIN_ID \
+  --value "84532" \
+  --env production
+```
+
+2. **Deploy:**
+```bash
+scripts/vercel_deploy.sh --project bountylock --production
+```
+
+3. **Check status:**
+```bash
+scripts/vercel_status.sh --project bountylock
+```
+
+### Update Environment Variables
+
+```bash
+# Update contract address after redeployment
+scripts/vercel_env.sh --project bountylock --set \
+  --key NEXT_PUBLIC_CONTRACT_ADDRESS \
+  --value "0xNEW_ADDRESS" \
+  --env production
+
+# Trigger new deployment to use updated vars
+scripts/vercel_deploy.sh --project bountylock --production
+```
+
+### Debug Deployment Issues
+
+```bash
+# Get latest deployment info
+scripts/vercel_status.sh --project bountylock
+
+# Get build logs
+scripts/vercel_logs.sh --deployment dpl_abc123
+
+# Check environment variables
+scripts/vercel_env.sh --project bountylock --list
+```
+
+## Security Best Practices
+
+1. **Token Scope:** Use project-scoped tokens when possible
+2. **Rotation:** Rotate tokens periodically
+3. **Audit:** Review deployment logs regularly
+4. **Secrets:** Never commit tokens to git
 
 ## Troubleshooting
 
-### Network Egress Error
+**"Authentication failed"**
+- Check token is set correctly
+- Verify token hasn't expired
 
-If deployment fails due to network restrictions (common on claude.ai), tell the user:
+**"Project not found"**
+- Verify project name matches Vercel project
+- Check account has access to project
 
-```
-Deployment failed due to network restrictions. To fix this:
+**"Deployment failed"**
+- Check build logs: `scripts/vercel_logs.sh --deployment dpl_xxx`
+- Verify environment variables are set correctly
+- Check for build errors in code
 
-1. Go to https://claude.ai/settings/capabilities
-2. Add *.vercel.com to the allowed domains
-3. Try deploying again
-```
+## Reference Files
+
+- **Vercel API Reference:** See [vercel-api.md](references/vercel-api.md) for complete API documentation
+- **Deployment Patterns:** See [deployment-patterns.md](references/deployment-patterns.md) for common deployment workflows
